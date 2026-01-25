@@ -8,6 +8,9 @@ class Node {
         Node previous;
 
     public:
+        Node(string value){
+            this.value = value;
+        }
 
         string getValue(){
             return this.value;
@@ -35,7 +38,7 @@ class Node {
         }
 }
 
-class LinkedListStack {
+class DoublyLinkedListStack {
     private:
         Node head;
         Node tail;
@@ -44,6 +47,48 @@ class LinkedListStack {
     
     public:
         void push(string value){
-            
+            if (!this.head) {
+                this.head = Node(value);
+                this.tail = this.head;
+                this.head.next = this.tail;
+                this.tail.previous = this.head;
+            }
+            else{
+                this.tail.next = Node(value);
+                this.tail.next.previous = this.tail;
+            }
+            this.length += 1;
         }
+
+        Node pop(){
+            if (!this.head){
+                return
+            }
+            else{
+                this.tail.previous.next = nullptr;
+                temp = this.tail;
+                this.tail = this.tail.previous;
+                this.length -= 1;
+                return temp;
+            }
+        }
+}
+
+bool isParanthesesBalanced(char[] beginningParantheses, char[] endingParantheses, string expression){
+    DoublyLinkedListStack stack = DoublyLinkedListStack();
+
+    for (char c : expression){
+        if (find(begin(beginningParantheses),end(beginningParantheses),c) != end(beginningParantheses)){
+            stack.push(string c);
+        }
+        else if (find(begin(endingParantheses),end(endingParantheses),c) != end(endingParantheses)){
+            delete(stack.pop());
+        }
+    }
+
+    return stack.length == 0;
+}
+
+bool areBracketsAndParanthesesBalanced(string expression){
+    return isParanthesesBalanced({'['},{']'},expression) && isParanthesesBalanced({'('},{')'},expression);
 }
