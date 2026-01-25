@@ -1,7 +1,23 @@
 #include <iostream>
 #include <string>
+#include <vector>
 
 using namespace std;
+
+class Stack {
+protected:
+    int length = 0;
+
+public:
+    virtual void push(const string& value) = 0;
+    virtual string pop() = 0;
+
+    int getLength() const {
+        return length;
+    }
+
+    virtual ~Stack() = default;
+};
 
 class Node {
 private:
@@ -14,10 +30,6 @@ public:
 
     string getValue() {
         return value;
-    }
-
-    void setValue(string value) {
-        this->value = value;
     }
 
     Node* getNext() {
@@ -37,16 +49,15 @@ public:
     }
 };
 
-class DoublyLinkedListStack {
+class DoublyLinkedListStack : public Stack {
 private:
     Node* head;
     Node* tail;
-    int length;
 
 public:
-    DoublyLinkedListStack() : head(nullptr), tail(nullptr), length(0) {}
+    DoublyLinkedListStack() : head(nullptr), tail(nullptr) {}
 
-    void push(string value) {
+    void push(const string& value) override {
         Node* newNode = new Node(value);
 
         if (!head) {
@@ -59,12 +70,14 @@ public:
         length++;
     }
 
-    Node* pop() {
+    string pop() override {
         if (!tail) {
-            return nullptr;
+            return "";
         }
 
         Node* temp = tail;
+        string tempValue = temp->getValue();
+
         tail = tail->getPrevious();
 
         if (tail) {
@@ -73,40 +86,75 @@ public:
             head = nullptr;
         }
 
+        delete temp;
         length--;
-        return temp;
+        return tempValue;
     }
 
-    int getLength() {
-        return length;
+    ~DoublyLinkedListStack() {
+        while (tail) {
+            pop();
+        }
     }
 };
 
-bool isParanthesesBalanced(string expression, char opening, char closing) {
-    DoublyLinkedListStack stack;
+class ArrayStack : public Stack {
+private:
+    vector<string> arr;
 
+public:
+    void push(const string& value) override {
+        arr.push_back(value);
+        length++;
+    }
+
+    string pop() override {
+        if (arr.empty()) {
+            return "";
+        }
+
+        string val = arr.back();
+        arr.pop_back();
+        length--;
+        return val;
+    }
+};
+
+bool isParanthesesBalanced(
+    const string& expression,
+    char opening,
+    char closing,
+    Stack& stack
+) {
     for (char c : expression) {
         if (c == opening) {
             stack.push(string(1, c));
         } else if (c == closing) {
-            Node* popped = stack.pop();
-            if (!popped) {
+            string popped = stack.pop();
+            if (popped.empty()) {
                 return false;
             }
-            delete popped;
         }
     }
-
     return stack.getLength() == 0;
 }
 
-bool areBracketsAndParanthesesBalanced(string expression) {
-    return isParanthesesBalanced(expression, '[', ']') &&
-           isParanthesesBalanced(expression, '(', ')');
+bool areBracketsAndParanthesesBalanced(
+    const string& expression,
+    Stack& stack
+) {
+    return isParanthesesBalanced(expression, '[', ']', stack) &&
+           isParanthesesBalanced(expression, '(', ')', stack);
 }
 
 int main() {
     string test = "[()]";
-    cout << areBracketsAndParanthesesBalanced(test) << endl;
+
+    DoublyLinkedListStack dllStack;
+    cout << areBracketsAndParanthesesBalanced(test, dllStack) << endl;
+
+    ArrayStack arrayStack;
+    cout << areBracketsAndParanthesesBalanced(test, arrayStack) << endl;
+
     return 0;
 }
