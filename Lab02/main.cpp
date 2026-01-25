@@ -1,94 +1,112 @@
 #include <iostream>
+#include <string>
+
 using namespace std;
 
 class Node {
-    private:
-        string value;
-        Node next;
-        Node previous;
+private:
+    string value;
+    Node* next;
+    Node* previous;
 
-    public:
-        Node(string value){
-            this.value = value;
-        }
+public:
+    Node(string value) : value(value), next(nullptr), previous(nullptr) {}
 
-        string getValue(){
-            return this.value;
-        }
+    string getValue() {
+        return value;
+    }
 
-        string setValue(string value){
-            // Do any filtering of outside value here
-            this.value = value;
-        }
+    void setValue(string value) {
+        this->value = value;
+    }
 
-        Node getNext(){
-            return this.next;
-        }
+    Node* getNext() {
+        return next;
+    }
 
-        void setNext(Node newNext){
-            this.next = newNext;
-        }
+    void setNext(Node* newNext) {
+        next = newNext;
+    }
 
-        Node getPrevious(){
-            return this.previous;
-        }
+    Node* getPrevious() {
+        return previous;
+    }
 
-        void setPrevious(Node newPrevious){
-            this.next = newPrevious;
-        }
-}
+    void setPrevious(Node* newPrevious) {
+        previous = newPrevious;
+    }
+};
 
 class DoublyLinkedListStack {
-    private:
-        Node head;
-        Node tail;
+private:
+    Node* head;
+    Node* tail;
+    int length;
 
-        int length = 0;
-    
-    public:
-        void push(string value){
-            if (!this.head) {
-                this.head = Node(value);
-                this.tail = this.head;
-                this.head.next = this.tail;
-                this.tail.previous = this.head;
-            }
-            else{
-                this.tail.next = Node(value);
-                this.tail.next.previous = this.tail;
-            }
-            this.length += 1;
+public:
+    DoublyLinkedListStack() : head(nullptr), tail(nullptr), length(0) {}
+
+    void push(string value) {
+        Node* newNode = new Node(value);
+
+        if (!head) {
+            head = tail = newNode;
+        } else {
+            tail->setNext(newNode);
+            newNode->setPrevious(tail);
+            tail = newNode;
+        }
+        length++;
+    }
+
+    Node* pop() {
+        if (!tail) {
+            return nullptr;
         }
 
-        Node pop(){
-            if (!this.head){
-                return
-            }
-            else{
-                this.tail.previous.next = nullptr;
-                temp = this.tail;
-                this.tail = this.tail.previous;
-                this.length -= 1;
-                return temp;
-            }
-        }
-}
+        Node* temp = tail;
+        tail = tail->getPrevious();
 
-bool isParanthesesBalanced(char[] beginningParantheses, char[] endingParantheses, string expression){
-    DoublyLinkedListStack stack = DoublyLinkedListStack();
-
-    for (char c : expression){
-        if (find(begin(beginningParantheses),end(beginningParantheses),c) != end(beginningParantheses)){
-            stack.push(string c);
+        if (tail) {
+            tail->setNext(nullptr);
+        } else {
+            head = nullptr;
         }
-        else if (find(begin(endingParantheses),end(endingParantheses),c) != end(endingParantheses)){
-            delete(stack.pop());
+
+        length--;
+        return temp;
+    }
+
+    int getLength() {
+        return length;
+    }
+};
+
+bool isParanthesesBalanced(string expression, char opening, char closing) {
+    DoublyLinkedListStack stack;
+
+    for (char c : expression) {
+        if (c == opening) {
+            stack.push(string(1, c));
+        } else if (c == closing) {
+            Node* popped = stack.pop();
+            if (!popped) {
+                return false;
+            }
+            delete popped;
         }
     }
 
-    return stack.length == 0;
+    return stack.getLength() == 0;
 }
 
-bool areBracketsAndParanthesesBalanced(string expression){
-    return isParanthesesBalanced({'['},{']'},expression) && isParanthesesBalanced({'('},{')'},expression);
+bool areBracketsAndParanthesesBalanced(string expression) {
+    return isParanthesesBalanced(expression, '[', ']') &&
+           isParanthesesBalanced(expression, '(', ')');
+}
+
+int main() {
+    string test = "[()]";
+    cout << areBracketsAndParanthesesBalanced(test) << endl;
+    return 0;
 }
